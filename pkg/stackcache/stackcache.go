@@ -2,7 +2,7 @@ package stackcache
 
 // Cache describes an cache
 type Cache interface {
-	Find(id string) interface{}
+	Find(id string) chan interface{}
 }
 
 type cache struct {
@@ -24,8 +24,12 @@ func NewCache(len int, getNewItem func(id string) interface{}) Cache {
 	}
 }
 
-func (cache *cache) Find(id string) interface{} {
-	return cache.getNewItem(id)
+func (cache *cache) Find(id string) chan interface{} {
+	channel := make(chan interface{})
+	go func(c chan interface{}) {
+		c <- cache.getNewItem(id)
+	}(channel)
+	return channel
 }
 
 // getIndexOfItem search for an Item

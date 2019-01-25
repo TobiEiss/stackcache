@@ -14,7 +14,7 @@ func TestCache(t *testing.T) {
 	})
 
 	// find data
-	data1 := stack.Find("myID1").(string)
+	data1 := (<-stack.Find("myID1")).(string)
 	if data1 != "myData1" {
 		t.Fail()
 	}
