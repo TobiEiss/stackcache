@@ -9,13 +9,14 @@ import (
 
 func TestCache(t *testing.T) {
 	// Create a new cache
-	stack := stackcache.NewCache(5, func(id string) interface{} {
-		return strings.Replace(id, "ID", "Data", 1)
+	stack := stackcache.NewCache(5, func(id string) (interface{}, error) {
+		return strings.Replace(id, "ID", "Data", 1), nil
 	})
 
 	// find data
-	data1 := (*(<-stack.Find("myID1"))).(string)
-	if data1 != "myData1" {
+	dataInterface, err := stack.Find("myID1")
+	data1 := (*(dataInterface)).(string)
+	if data1 != "myData1" && err != nil {
 		t.Fail()
 	}
 }

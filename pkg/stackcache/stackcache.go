@@ -4,12 +4,12 @@ import "sync"
 
 // Cache describes an cache
 type Cache interface {
-	Find(id string) chan *interface{}
+	Find(id string) (*interface{}, error)
 }
 
 type cache struct {
 	items      *[]item
-	getNewItem func(id string) interface{}
+	getNewItem func(id string) (interface{}, error)
 	mux        sync.Mutex
 }
 
@@ -20,7 +20,7 @@ type item struct {
 }
 
 // NewCache creates a new cache
-func NewCache(len int, getNewItem func(id string) interface{}) Cache {
+func NewCache(len int, getNewItem func(id string) (interface{}, error)) Cache {
 	// add dummy-objects to cache
 	items := []item{}
 	for i := 0; i < len; i++ {
@@ -35,27 +35,24 @@ func NewCache(len int, getNewItem func(id string) interface{}) Cache {
 }
 
 // Find finds an item in the stack
-func (cache *cache) Find(id string) chan *interface{} {
-	channel := make(chan *interface{})
-	go func(c chan *interface{}) {
-		defer close(c)
-		cache.mux.Lock()
-		defer cache.mux.Unlock()
+func (cache *cache) Find(id string) (*interface{}, error) {
+	var err error
+	cache.mux.Lock()
+	defer cache.mux.Unlock()
 
-		// check if item is already in cache
-		if index := cache.getIndexOfItem(id); index > -1 {
-			// item is available => move item to first position
-			cache.removeAndAdd(len(*cache.items), (*cache.items)[index])
-		} else {
-			// create new item and move to first position
-			data := cache.getNewItem(id)
-			cache.removeAndAdd(0, item{id: id, data: &data})
-		}
+	// check if item is already in cache
+	if index := cache.getIndexOfItem(id); index > -1 {
+		// item is available => move item to first position
+		cache.removeAndAdd(len(*cache.items), (*cache.items)[index])
+	} else {
+		// create new item and move to first position
+		var newItem interface{}
+		newItem, err = cache.getNewItem(id)
+		cache.removeAndAdd(0, item{id: id, data: &newItem})
+	}
 
-		// add data to channel
-		c <- (*cache.items)[len(*cache.items)-1].data
-	}(channel)
-	return channel
+	// add data to channel
+	return (*cache.items)[len(*cache.items)-1].data, err
 }
 
 // getIndexOfItem search for an Item
