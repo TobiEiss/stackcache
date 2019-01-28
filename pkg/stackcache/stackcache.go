@@ -4,13 +4,12 @@ import "sync"
 
 // Cache describes an cache
 type Cache interface {
-	Find(id string) (*interface{}, error)
+	Find(id string, createNewItem func(id string) (interface{}, error)) (*interface{}, error)
 }
 
 type cache struct {
-	items      *[]item
-	getNewItem func(id string) (interface{}, error)
-	mux        sync.Mutex
+	items *[]item
+	mux   sync.Mutex
 }
 
 // an item holds the data and pass also an id
@@ -20,7 +19,7 @@ type item struct {
 }
 
 // NewCache creates a new cache
-func NewCache(len int, getNewItem func(id string) (interface{}, error)) Cache {
+func NewCache(len int) Cache {
 	// add dummy-objects to cache
 	items := []item{}
 	for i := 0; i < len; i++ {
@@ -29,13 +28,12 @@ func NewCache(len int, getNewItem func(id string) (interface{}, error)) Cache {
 
 	// create cache and return
 	return &cache{
-		items:      &items,
-		getNewItem: getNewItem,
+		items: &items,
 	}
 }
 
 // Find finds an item in the stack
-func (cache *cache) Find(id string) (*interface{}, error) {
+func (cache *cache) Find(id string, createNewItem func(id string) (interface{}, error)) (*interface{}, error) {
 	var err error
 	cache.mux.Lock()
 	defer cache.mux.Unlock()
@@ -47,7 +45,7 @@ func (cache *cache) Find(id string) (*interface{}, error) {
 	} else {
 		// create new item and move to first position
 		var newItem interface{}
-		newItem, err = cache.getNewItem(id)
+		newItem, err = createNewItem(id)
 		cache.removeAndAdd(0, item{id: id, data: &newItem})
 	}
 

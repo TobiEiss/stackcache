@@ -8,13 +8,15 @@ import (
 )
 
 func TestCache(t *testing.T) {
-	// Create a new cache
-	stack := stackcache.NewCache(5, func(id string) (interface{}, error) {
+	createNewItem := func(id string) (interface{}, error) {
 		return strings.Replace(id, "ID", "Data", 1), nil
-	})
+	}
+
+	// Create a new cache
+	stack := stackcache.NewCache(5)
 
 	// find data
-	dataInterface, err := stack.Find("myID1")
+	dataInterface, err := stack.Find("myID1", createNewItem)
 	data1 := (*(dataInterface)).(string)
 	if data1 != "myData1" && err != nil {
 		t.Fail()
