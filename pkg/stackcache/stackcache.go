@@ -41,7 +41,7 @@ func (cache *cache) Find(id string, createNewItem func(id string) (interface{}, 
 	// check if item is already in cache
 	if index := cache.getIndexOfItem(id); index > -1 {
 		// item is available => move item to first position
-		cache.removeAndAdd(len(*cache.items), (*cache.items)[index])
+		cache.removeAndAdd(len(*cache.items)-1, (*cache.items)[index])
 	} else {
 		// create new item and move to first position
 		var newItem interface{}

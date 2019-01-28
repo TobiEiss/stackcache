@@ -21,4 +21,18 @@ func TestCache(t *testing.T) {
 	if data1 != "myData1" && err != nil {
 		t.Fail()
 	}
+
+	// find data
+	dataInterface, err = stack.Find("myID2", createNewItem)
+	data2 := (*(dataInterface)).(string)
+	if data2 != "myData1" && err != nil {
+		t.Fail()
+	}
+
+	// find data
+	dataInterface, err = stack.Find("myID1", createNewItem)
+	data1 = (*(dataInterface)).(string)
+	if data1 != "myData1" && err != nil {
+		t.Fail()
+	}
 }
