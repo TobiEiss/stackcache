@@ -46,7 +46,12 @@ func (cache *cache) Find(id string, createNewItem func(id string) (interface{}, 
 		// create new item and move to first position
 		var newItem interface{}
 		newItem, err = createNewItem(id)
-		cache.removeAndAdd(0, item{id: id, data: &newItem})
+
+		// cash only if no error
+		// If we add data despite mistakes. We do not know later, whether it is an error or the data is simply empty
+		if err == nil {
+			cache.removeAndAdd(0, item{id: id, data: &newItem})
+		}
 	}
 
 	// add data to channel
